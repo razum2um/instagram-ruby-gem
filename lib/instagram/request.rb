@@ -27,7 +27,7 @@ module Instagram
     private
 
     # Perform an HTTP request
-    def request(method, path, options, signature=false, raw=false, unformatted=false, no_response_wrapper=false, signed=sign_requests)
+    def request(method, path, options, signature=false, raw=false, unformatted=false, no_response_wrapper=false, signed=sign_requests, encode_path=true)
       response = connection(raw).send(method) do |request|
         path = formatted_path(path) unless unformatted
         
@@ -42,13 +42,15 @@ module Instagram
           options[:sig] = sig
         end
         
+        encoded_path = encode_path ? URI.encode(path) : path
         case method
         when :get, :delete
-          request.url(URI.encode(path), options)
+          request.url(encoded_path, options)
         when :post, :put
-          request.path = URI.encode(path)
+          request.path = encoded_path
           request.body = options unless options.empty?
         end
+
         if signature && client_ips != nil
           request.headers["X-Insta-Forwarded-For"] = get_insta_fowarded_for(client_ips, client_secret)
         end
@@ -56,7 +58,8 @@ module Instagram
       return response if raw
       return response.body if no_response_wrapper
       return Response.create( response.body, {:limit => response.headers['x-ratelimit-limit'].to_i,
-                                              :remaining => response.headers['x-ratelimit-remaining'].to_i} )
+                                              :remaining => response.headers['x-ratelimit-remaining'].to_i,
+                                              :request => self} )
     end
 
     def formatted_path(path)

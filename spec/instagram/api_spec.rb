@@ -45,6 +45,7 @@ describe Instagram::API do
           :no_response_wrapper => true,
           :loud_logger => true,
           :sign_requests => false,
+          :timeout => nil,
         }
       end
 

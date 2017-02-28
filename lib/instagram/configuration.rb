@@ -21,6 +21,7 @@ module Instagram
       :no_response_wrapper,
       :loud_logger,
       :sign_requests,
+      :timeout
     ].freeze
 
     # By default, don't set a user access token
@@ -117,6 +118,7 @@ module Instagram
       self.no_response_wrapper= DEFAULT_NO_RESPONSE_WRAPPER
       self.loud_logger        = DEFAULT_LOUD_LOGGER
       self.sign_requests      = DEFAULT_SIGN_REQUESTS
+      self.timeout            = nil
     end
   end
 end

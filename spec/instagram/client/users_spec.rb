@@ -73,26 +73,37 @@ describe Instagram::Client do
       end
 
       describe ".user_follows" do
+        let(:next_url) { 'users/20/follows?access_token=at&cursor=10906239&q=Shayne%20Sweeney' }
+
+        before do
+          follows = JSON(fixture("follows.#{format}").read)
+          pagination = follows.delete('pagination')
+          stub_get(next_url).
+            to_return(:body => JSON(follows), :headers => {:content_type => "application/#{format}; charset=utf-8"})
+        end
+
 
         context "with user ID passed" do
 
           before do
             stub_get("users/4/follows.#{format}").
               with(:query => {:access_token => @client.access_token}).
-              to_return(:body => fixture("follows.#{format}"), :headers => {:content_type => "application/#{format}; charset=utf-8"})
+              to_return(:body => fixture("follows.#{format}"), :headers => {:content_type => "application/#{format}; charset=utf-8", :x_ratelimit_remaining => 1})
           end
 
           it "should get the correct resource" do
-            @client.user_follows(4)
+            @client.user_follows(4).to_a
             a_get("users/4/follows.#{format}").
               with(:query => {:access_token => @client.access_token}).
               should have_been_made
+            a_get(next_url).should have_been_made
           end
 
           it "should return a list of users whom a given user follows" do
             follows = @client.user_follows(4)
             follows.should be_a Array
             follows.first.username.should == "heartsf"
+            follows.to_a.size.should == 100 # 50 of fixture twice
           end
         end
 
@@ -173,8 +184,7 @@ describe Instagram::Client do
           let(:user_media_feed_response){ @client.user_media_feed }
           subject{ user_media_feed_response }
 
-          it{ should be_an_instance_of(Array) }
-          it{ should be_a_kind_of(Instagram::Response) }
+          it{ should be_an(Array) }
           it{ should respond_to(:pagination) }
           it{ should respond_to(:meta) }
 

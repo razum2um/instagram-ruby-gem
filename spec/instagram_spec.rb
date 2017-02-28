@@ -17,8 +17,8 @@ describe Instagram do
        a_get("users/self/feed.json").should have_been_made
      end
 
-     it "should return the same results as a client" do
-       Instagram.user_media_feed().should == Instagram::Client.new.user_media_feed()
+     it "should return the same data results as a client" do
+       Instagram.user_media_feed().to_a.should == Instagram::Client.new.user_media_feed().to_a
      end
 
    end
